@@ -1,26 +1,17 @@
-/*
+use std::ops::Range;
 
-    sled - an obscure systems(?) programming language
-    Copyright (C) 2024  glomdom
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-*/
-
+use ariadne::{Color, Label, Report, ReportKind};
 use logos::Logos;
+use thiserror::Error;
+
+#[derive(Default, Debug, Clone, PartialEq)]
+pub enum LexicalError {
+    #[default]
+    UnrecognizedToken,
+}
 
 #[derive(Logos, Debug, PartialEq)]
+#[logos(error = LexicalError)]
 #[logos(skip r"[ \t\n\f]+")]
 pub enum Token {
     #[token("|")]
@@ -103,26 +94,49 @@ pub enum Token {
     #[regex(r"[0-9]+(\.[0-9]+)?")]
     Number,
 
-    #[regex(r#""([^"\\]|\\.)*""#)]
-    String,
+    #[regex(r#""([^"\\]|\\.)*""#, |lex| lex.slice().to_owned())]
+    String(String),
+
+    #[regex(r#""[^"]*"#, priority = 1)]
+    UnclosedString,
 
     #[regex("[a-zA-Z_][a-zA-Z0-9_]*")]
     Identifier,
 }
 
-pub fn lex(input: &str) -> Vec<(Token, &str)> {
+// Function to run the lexer and handle unclosed strings
+pub fn lex(input: &str) -> Result<Vec<(Token, Range<usize>, &str)>, Report> {
     let mut lexer = Token::lexer(input);
     let mut tokens = Vec::new();
 
-    while let Some(token_result) = lexer.next() {
-        match token_result {
-            Ok(token) => tokens.push((token, lexer.slice())),
-    
-            Err(_) => {
-                eprintln!("Error: Unrecognized token: {}", lexer.slice());
+    while let Some(token) = lexer.next() {
+        let span = lexer.span();
+
+        match token {
+            Ok(Token::UnclosedString) => {
+                let report = Report::build(ReportKind::Error, (), span.start)
+                    .with_message("unclosed string literal")
+                    .with_label(Label::new(span)
+                        .with_message("string starting here was not closed")
+                        .with_color(Color::Red))
+                    .finish();
+
+                return Err(report);
+            }
+
+            Ok(Token::String(_)) | Ok(Token::Identifier) | Ok(Token::Number) => {
+                tokens.push((token.unwrap(), span.clone(), lexer.slice()));
+            }
+
+            Ok(token) => {
+                tokens.push((token, span.clone(), lexer.slice()));
+            }
+
+            Err(LexicalError::UnrecognizedToken) => {
+
             }
         }
     }
-    
-    tokens
+
+    Ok(tokens)
 }
