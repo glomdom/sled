@@ -34,19 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     claim y = whence x == 2 [ 10 ] other [ 5 ]
 
     claim z = "2"
-
-    whence x > 10 [
-      print "massiv balls"
-    ] orwhence x == 10 [
-      print "latinas"
-    ] other [
-      print "black"
-    ]
-
-    | fnname
-      <- in1 :: type ? default_value
-      <- in2 :: type
-      -> out_type []"#;
+    claim f = "3 "#;
 
     match lexer::lex(source) {
         Ok(tokens) => {

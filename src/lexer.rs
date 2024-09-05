@@ -117,7 +117,7 @@ pub fn lex(input: &str) -> Result<Vec<(Token, Range<usize>, &str)>, Report> {
                 let report = Report::build(ReportKind::Error, (), span.start)
                     .with_message("unclosed string literal")
                     .with_label(Label::new(span)
-                        .with_message("string starting here was not closed")
+                        .with_message("this string was not closed")
                         .with_color(Color::Red))
                     .finish();
 
