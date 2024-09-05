@@ -18,9 +18,11 @@
 
 */
 
+use ariadne::Source;
+
 mod lexer;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let source = r#"
     mold Glomdom [
       name :: string
@@ -30,6 +32,8 @@ fn main() {
 
     claim x = 2
     claim y = whence x == 2 [ 10 ] other [ 5 ]
+
+    claim z = "2"
 
     whence x > 10 [
       print "massiv balls"
@@ -44,9 +48,17 @@ fn main() {
       <- in2 :: type
       -> out_type []"#;
 
-    let tokens = lexer::lex(&source);
-
-    for (token, slice) in tokens {
-        println!("{:?} -> {}", token, slice);
+    match lexer::lex(source) {
+        Ok(tokens) => {
+            for (token, span, slice) in tokens {
+                println!("{:?}: '{}'", token, slice);
+            }
+        }
+        Err(report) => {
+            // Create a Source object from the input and print the error report
+            report.print(Source::from(source))?;
+        }
     }
+
+    Ok(())
 }
