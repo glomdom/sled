@@ -18,101 +18,10 @@
 
 */
 
-use logos::Logos;
-
-#[derive(Logos, Debug, PartialEq)]
-#[logos(skip r"[ \t\n\f]+")]
-enum Token {
-    #[token("|")]
-    Pipe,
-
-    #[token("mold")]
-    Mold,
-
-    #[token("claim")]
-    Claim,
-
-    #[token("->")]
-    LeftPointer,
-    #[token("<-")]
-    RightPointer,
-
-    #[token("[")]
-    OpenBracket,
-    #[token("]")]
-    CloseBracket,
-
-    #[token("+")]
-    Plus,
-    #[token("-")]
-    Minus,
-    #[token("*")]
-    Multiply,
-    #[token("/")]
-    Divide,
-    #[token("==")]
-    Equal,
-    #[token("!=")]
-    NotEqual,
-    #[token(">")]
-    GreaterThan,
-    #[token("<")]
-    LessThan,
-    #[token(">=")]
-    GreaterThanOrEqual,
-    #[token("<=")]
-    LessThanOrEqual,
-
-    #[token("+=")]
-    PlusEqual,
-    #[token("-=")]
-    MinusEqual,
-    #[token("*=")]
-    MultiplyEqual,
-    #[token("/=")]
-    DivideEqual,
-
-    #[token("::")]
-    DoubleColon,
-
-    #[token("?")]
-    QuestionMark,
-
-    #[token("=")]
-    Assign,
-
-    #[token("whence")]
-    Whence,
-    #[token("orwhence")]
-    OrWhence,
-    #[token("other")]
-    Other,
-
-    #[token("++")]
-    Increment,
-    #[token("--")]
-    Decrement,
-
-    #[token("for")]
-    For,
-    #[token("while")]
-    While,
-    #[token("forin")]
-    ForIn,
-
-    #[regex(r"[0-9]+(\.[0-9]+)?")]
-    Number,
-
-    #[regex(r#""([^"\\]|\\.)*""#)]
-    String,
-
-    #[regex("[a-zA-Z_][a-zA-Z0-9_]*")]
-    Identifier,
-}
+mod lexer;
 
 fn main() {
-    let mut lex = Token::lexer(
-        r#"
+    let source = r#"
     mold Glomdom [
       name :: string
       age :: integer
@@ -133,10 +42,11 @@ fn main() {
     | fnname
       <- in1 :: type ? default_value
       <- in2 :: type
-      -> out_type []"#,
-    );
+      -> out_type []"#;
 
-    while let Some(token) = lex.next() {
-        println!("{:?}: {}", token, lex.slice());
+    let tokens = lexer::lex(&source);
+
+    for (token, slice) in tokens {
+        println!("{:?} -> {}", token, slice);
     }
 }
