@@ -21,6 +21,8 @@ pub enum Token {
 
     #[token("claim")]
     Claim,
+    #[token("always")]
+    Always,
 
     #[token("->")]
     LeftPointer,
