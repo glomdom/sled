@@ -30,6 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       programmer :: theory
     ]
 
+    -#- s
     claim x = 2
     claim y = whence x == 2 [ 10 ] other [ 5 ]
 

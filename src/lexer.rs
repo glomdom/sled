@@ -32,6 +32,7 @@ pub enum LexicalError {
 #[derive(Logos, Debug, PartialEq)]
 #[logos(error = LexicalError)]
 #[logos(skip r"[ \t\n\f]+")]
+#[logos(skip r"-#-[^\n]*")]
 pub enum Token {
     #[token("|")]
     Pipe,
