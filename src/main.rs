@@ -33,12 +33,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     claim x = 2
     claim y = whence x == 2 [ 10 ] other [ 5 ]
 
-    claim z = "2 
-    claim f = "3" "#;
+    claim z = "2"
+    claim f = "3"
+    always t = 4"#;
 
     match lexer::lex(source) {
         Ok(tokens) => {
-            for (token, span, slice) in tokens {
+            for (token, _, slice) in tokens {
                 println!("{:?}: '{}'", token, slice);
             }
         }
