@@ -33,8 +33,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     claim x = 2
     claim y = whence x == 2 [ 10 ] other [ 5 ]
 
-    claim z = "2"
-    claim f = "3 "#;
+    claim z = "2 
+    claim f = "3" "#;
 
     match lexer::lex(source) {
         Ok(tokens) => {
@@ -42,8 +42,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("{:?}: '{}'", token, slice);
             }
         }
+    
         Err(report) => {
-            // Create a Source object from the input and print the error report
             report.print(Source::from(source))?;
         }
     }

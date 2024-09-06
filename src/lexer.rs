@@ -2,7 +2,6 @@ use std::ops::Range;
 
 use ariadne::{Color, Label, Report, ReportKind};
 use logos::Logos;
-use thiserror::Error;
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub enum LexicalError {
@@ -97,14 +96,10 @@ pub enum Token {
     #[regex(r#""([^"\\]|\\.)*""#, |lex| lex.slice().to_owned())]
     String(String),
 
-    #[regex(r#""[^"]*"#, priority = 1)]
-    UnclosedString,
-
     #[regex("[a-zA-Z_][a-zA-Z0-9_]*")]
     Identifier,
 }
 
-// Function to run the lexer and handle unclosed strings
 pub fn lex(input: &str) -> Result<Vec<(Token, Range<usize>, &str)>, Report> {
     let mut lexer = Token::lexer(input);
     let mut tokens = Vec::new();
@@ -113,17 +108,6 @@ pub fn lex(input: &str) -> Result<Vec<(Token, Range<usize>, &str)>, Report> {
         let span = lexer.span();
 
         match token {
-            Ok(Token::UnclosedString) => {
-                let report = Report::build(ReportKind::Error, (), span.start)
-                    .with_message("unclosed string literal")
-                    .with_label(Label::new(span)
-                        .with_message("this string was not closed")
-                        .with_color(Color::Red))
-                    .finish();
-
-                return Err(report);
-            }
-
             Ok(Token::String(_)) | Ok(Token::Identifier) | Ok(Token::Number) => {
                 tokens.push((token.unwrap(), span.clone(), lexer.slice()));
             }
@@ -133,7 +117,16 @@ pub fn lex(input: &str) -> Result<Vec<(Token, Range<usize>, &str)>, Report> {
             }
 
             Err(LexicalError::UnrecognizedToken) => {
+                let report = Report::build(ReportKind::Error, (), span.start)
+                    .with_message("unrecognized token")
+                    .with_label(
+                        Label::new(span)
+                            .with_message("unexpected token")
+                            .with_color(Color::Red),
+                    )
+                    .finish();
 
+                return Err(report);
             }
         }
     }
